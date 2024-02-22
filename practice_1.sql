@@ -48,3 +48,31 @@ order by employee_id;
 select product_id from products
 where low_fats = 'Y'
 and recyclable = 'Y';
+
+--- ex10: leetcode-find-customer-referee
+select name from customer
+where referee_id <> 2 
+or referee_id is null;
+
+--- ex11: leetcode-big-countries
+select name,population,area from world
+where area >= 3000000
+or population >= 25000000;
+
+--- ex12: leetcode-article-views
+select distinct author_id as id from views
+where author_id = viewer_id
+order by author_id;
+
+--- ex13: datalemur-tesla-unfinished-part
+SELECT part, assembly_step FROM parts_assembly
+where finish_date is NULL;
+
+--- ex14: datalemur-lyft-driver-wages
+select * from lyft_drivers
+where yearly_salary <= 30000 or yearly_salary > 70000;
+
+--- ex15: datalemur-find-the-advertising-channel
+select advertising_channel from uber_advertising
+where money_spent > 100000
+and year = 2019;
