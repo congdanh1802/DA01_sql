@@ -43,3 +43,29 @@ from tweets
 where length(content) > 15;
 
 --ex7: user-activity-for-the-past-30-days
+select 
+activity_date as day,
+count(distinct user_id) as active_users
+from activity
+where activity_date between '2019-06-28' and '2019-07-28'
+group by activity_date;
+
+--ex8: number-of-hires-during-specific-time-period
+select 
+count(id)
+from employees
+where (extract(month from joining_date) between 1 and 7)
+and (extract(year from joining_date)=2022);
+
+--ex9: positions-of-letter-a
+select 
+position('a' in first_name)
+from worker
+where first_name = 'Amitah';
+
+--ex10: macedonian-vintages
+select winery,
+substring(title from length(winery)+2 for 4) 
+from winemag_p2
+where country = 'Macedonia';
+
