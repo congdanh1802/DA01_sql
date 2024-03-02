@@ -64,3 +64,84 @@ where pl.user_id is null
 order by p.page_id;
 
 #Midterm_test
+--exercise1
+select distinct replacement_cost
+from film
+order by replacement_cost;
+
+--exercise2
+select 
+case 
+when replacement_cost between '9.99' and '19.99' then 'low'
+when replacement_cost between '20.00' and '24.99' then 'medium'
+when replacement_cost between '25.00' and '29.99' then 'high'
+end category,
+count(film_id)
+from film
+group by category;
+
+--exercise3
+select 
+f.title, f.length, c.name
+from film as f
+join film_category as fc 
+on f.film_id=fc.film_id
+join category as c 
+on c.category_id=fc.category_id
+where c.name in ('Drama', 'Sports')
+order by f.length desc;
+
+--exercise4
+select 
+c.name, count(f.film_id)
+from film as f
+join film_category as fc 
+on f.film_id=fc.film_id
+join category as c 
+on c.category_id=fc.category_id
+group by c.name
+order by count(f.film_id) desc;
+
+--exercise5
+select 
+a.first_name, a.last_name, count(fa.film_id)
+from actor as a
+left join film_actor as fa
+on a.actor_id=fa.actor_id
+group by a.first_name, a.last_name
+order by count(fa.film_id) desc;
+
+--exercise6
+select count(a.address)
+from address as a
+left join customer as c
+on a.address_id=c.address_id
+where c.customer_id is null;
+
+--exercise7
+select 
+ci.city, sum(p.amount)
+from payment as p 
+join customer as cu
+on p.customer_id=cu.customer_id
+join address as a
+on a.address_id=cu.address_id
+join city as ci
+on ci.city_id=a.city_id
+group by ci.city
+order by sum(p.amount) desc;
+
+--exercise8
+select 
+concat(ci.city,', ',co.country), sum(p.amount)
+from payment as p 
+join customer as cu
+on p.customer_id=cu.customer_id
+join address as a
+on a.address_id=cu.address_id
+join city as ci
+on ci.city_id=a.city_id
+join country as co
+on co.country_id=ci.country_id
+group by concat(ci.city,', ',co.country)
+order by sum(p.amount) desc;
