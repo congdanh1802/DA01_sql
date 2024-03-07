@@ -56,4 +56,26 @@ transaction_timestamp-lag(transaction_timestamp) over(partition by credit_card_i
 FROM transactions) as a
 where diff <= '00:10:00'
 
---
+--ex7: datalemur-highest-grossing
+select category,product, total_spend
+from
+(select category, product, sum(spend) as total_spend,
+row_number() over(partition by category order by sum(spend) desc) as r
+from product_spend
+where extract(year from transaction_date)=2022
+group by category, product) as z
+where r<=2;
+
+--ex8: datalemur-top-fans-rank
+select artist_name, r as artist_rank
+from
+(SELECT a.artist_id, a.artist_name, count(g.rank),
+dense_rank() over(order by count(g.rank) desc) as r
+FROM artists as a
+join songs as s
+on a.artist_id=s.artist_id
+join global_song_rank as g
+on g.song_id=s.song_id
+where g.rank <=10
+group by a.artist_id, a.artist_name) as z
+where r <= 5;
