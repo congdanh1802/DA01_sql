@@ -34,4 +34,26 @@ where r=1
 group by transaction_date,user_id
 order by transaction_date;
 
+--ex5: datalemur-rolling-average-tweets
+SELECT user_id, tweet_date,
+case 
+when c3 is not null then round((c1+c2+c3)/3.0,2)
+when c2 is not null then round((c1+c2)/2.0,2)
+else round(c1,2)
+end rolling_avg_3d
+from
+(select user_id, tweet_date, tweet_count c1,
+lag(tweet_count) over(partition by user_id order by tweet_date) c2,
+lag(tweet_count,2) over(partition by user_id order by tweet_date) c3
+from tweets) as c;
+
+--ex6: datalemur-repeated-payments
+select count(*)
+from
+(SELECT transaction_id	,merchant_id,credit_card_id, amount,transaction_timestamp,
+lag(transaction_timestamp) over(partition by credit_card_id,merchant_id, amount order by transaction_timestamp),
+transaction_timestamp-lag(transaction_timestamp) over(partition by credit_card_id,merchant_id, amount order by transaction_timestamp) diff
+FROM transactions) as a
+where diff <= '00:10:00'
+
 --
