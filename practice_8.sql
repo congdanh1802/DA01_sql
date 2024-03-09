@@ -20,6 +20,12 @@ where datediff(activity.event_date,cte.first_log)=1)/count(distinct player_id),2
 from activity;
 
 --ex3: leetcode-exchange-seats
+select id, 
+coalesce (case when id%2 != 0 then lead(student) over (order by id) 
+else lag(student) over (order by id)
+end, student) student
+from seat;
 
+--
 
 
