@@ -120,20 +120,35 @@ order by 1;
 
 --1/Dataset như mô tả
 
-with cte as
+with cte1 as
 (select  ordered_date, 100.0*(revenue - lag(revenue) over(order by ordered_date))/lag(revenue) over(order by ordered_date) revenue_growth
 FROM (select format_date('%Y-%m', created_at) AS ordered_date, sum(sale_price) revenue
  from bigquery-public-data.thelook_ecommerce.order_items
-group by ordered_date))
+group by ordered_date)),
+cte2 as
+(select  ordered_date, 100.0*(cnt_order - lag(cnt_order) over(order by ordered_date))/lag(cnt_order) over(order by ordered_date) order_growth
+FROM (select format_date('%Y-%m', created_at) AS ordered_date, count(order_id) cnt_order
+ from bigquery-public-data.thelook_ecommerce.orders
+group by ordered_date)),
+cte3 as
+(select format_date('%Y-%m', o1.created_at) AS ordered_date, sum(p.cost) total_cost
+from bigquery-public-data.thelook_ecommerce.orders as o1
+left join bigquery-public-data.thelook_ecommerce.order_items as o2 on o1.order_id=o2.order_id
+left join bigquery-public-data.thelook_ecommerce.products as p on o2.product_id=p.id
+group by ordered_date)
 
 select format_date('%Y-%m',o1.created_at) ordered_date, p.category product_category,
 sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at)) TPV, 
 count(o2.order_id) over(partition by format_date('%Y-%m',o1.created_at)) TPO,
-cte.revenue_growth
+cte1.revenue_growth, cte2.order_growth, cte3.total_cost,
+sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at))-cte3.total_cost total_profit
 from bigquery-public-data.thelook_ecommerce.orders as o1
 left join bigquery-public-data.thelook_ecommerce.order_items as o2 on o1.order_id=o2.order_id
 left join bigquery-public-data.thelook_ecommerce.products as p on o2.product_id=p.id
-left join cte on cte.ordered_date=format_date('%Y-%m',o1.created_at)
+left join cte1 on cte1.ordered_date=format_date('%Y-%m',o1.created_at)
+left join cte2 on cte2.ordered_date=format_date('%Y-%m',o1.created_at)
+left join cte3 on cte3.ordered_date=format_date('%Y-%m',o1.created_at)
 order by 1
+
 
 
