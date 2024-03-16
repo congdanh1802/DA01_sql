@@ -120,7 +120,8 @@ order by 1;
 
 --1/Dataset như mô tả
 
-with cte1 as
+create view bigquery-public-data.thelook_ecommerce.vw_ecommerce_analyst as
+with cte1 as 
 (select  ordered_date, 100.0*(revenue - lag(revenue) over(order by ordered_date))/lag(revenue) over(order by ordered_date) revenue_growth
 FROM (select format_date('%Y-%m', created_at) AS ordered_date, sum(sale_price) revenue
  from bigquery-public-data.thelook_ecommerce.order_items
@@ -141,14 +142,19 @@ select format_date('%Y-%m',o1.created_at) ordered_date, p.category product_categ
 sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at)) TPV, 
 count(o2.order_id) over(partition by format_date('%Y-%m',o1.created_at)) TPO,
 cte1.revenue_growth, cte2.order_growth, cte3.total_cost,
-sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at))-cte3.total_cost total_profit
+sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at))-cte3.total_cost total_profit,
+100.0*(sum(o2.sale_price) over(partition by format_date('%Y-%m',o1.created_at))-cte3.total_cost)/cte3.total_cost profit_to_cost_ratio
 from bigquery-public-data.thelook_ecommerce.orders as o1
 left join bigquery-public-data.thelook_ecommerce.order_items as o2 on o1.order_id=o2.order_id
 left join bigquery-public-data.thelook_ecommerce.products as p on o2.product_id=p.id
 left join cte1 on cte1.ordered_date=format_date('%Y-%m',o1.created_at)
 left join cte2 on cte2.ordered_date=format_date('%Y-%m',o1.created_at)
 left join cte3 on cte3.ordered_date=format_date('%Y-%m',o1.created_at)
-order by 1
+order by 1; 
+
+
+
+
 
 
 
