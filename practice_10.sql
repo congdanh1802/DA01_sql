@@ -155,6 +155,40 @@ order by 1;
 
 
 
+--2/Tạo retention cohort analysis
+with cte1 as (select user_id, format_date('%Y-%m',created_at) order_date, min(format_date('%Y-%m',created_at)) over(partition by user_id) as cohort_date
+from bigquery-public-data.thelook_ecommerce.orders)
+,cte2 as (select user_id, cohort_date,
+(extract(year from parse_date('%Y-%m',order_date))-extract(year from parse_date('%Y-%m',cohort_date)))*12
++ (extract(month from parse_date('%Y-%m',order_date))-extract(month from parse_date('%Y-%m',cohort_date))) + 1 index
+from cte1) 
+,cte3 as (select cohort_date, index,
+count(distinct user_id) cnt
+from cte2
+group by cohort_date, index
+having index<=4
+order by cohort_date, index)
+,cte4 as (select cohort_date,
+sum(case when index=1 then cnt else 0 end) i1,
+sum(case when index=2 then cnt else 0 end) i2,
+sum(case when index=3 then cnt else 0 end) i3,
+sum(case when index=4 then cnt else 0 end) i4
+from cte3
+group by cohort_date)
+select cohort_date,
+round(100.0*i1/i1,2)||'%' as i1,
+round(100.0*i2/i1,2)||'%' as i2,
+round(100.0*i3/i1,2)||'%' as i3,
+round(100.0*i4/i1,2)||'%' as i4
+from cte4
+order by cohort_date;
+
+--Nhận xét: Tỷ lệ giữ chân khách hàng của công ty tương đối thấp, hầu hết dưới 10%. 
+--Đề xuất: Công ty có thể tìm hiểu nguyên nhân 'đa số khách hàng chỉ mua 1 lần rồi từ bỏ' ở feedback về chất lượng sản phẩm hoặc customer service,... để khắc phục
+
+
+
+
 
 
 
