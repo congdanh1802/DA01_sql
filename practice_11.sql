@@ -24,3 +24,25 @@ from public.sales_dataset_rfm_prj_clean
 group by year_id, productline, country
 having country='UK')
 where r=1;
+
+--Ai là khách hàng tốt nhất, phân tích dựa vào RFM
+with cte1 as (select c.customer_id, current_date - max(s.order_date) as r,
+count(distinct s.order_id) as f,
+sum(s.sales) as m
+from customer as c
+join sales as s on c.customer_id=s.customer_id
+group by c.customer_id)
+, cte2 as (select customer_id,
+ntile(5) over(order by r desc) as r_score,
+ntile(5) over(order by f desc) as f_score,
+ntile(5) over(order by m desc) as m_score
+from cte1)
+, cte3 as (select customer_id,
+cast(r_score as varchar)||cast(f_score as varchar)||cast(m_score as varchar) rfm_score
+from cte2)
+, cte4 as (select cte3.customer_id, ss.segment
+from cte3
+join segment_score as ss on cte3.rfm_score=ss.scores)
+select * 
+from cte4
+where segment='Champions';
